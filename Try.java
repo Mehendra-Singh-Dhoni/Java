@@ -1,6 +1,8 @@
 class Try{
 public static void main(String args[]){
 	System.out.println("First Java code");
+
+	
 	int a=0;
 	int check=2;
 	int b=1;
