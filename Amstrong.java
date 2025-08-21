@@ -1,7 +1,7 @@
 public class Amstrong{
     public static void main(String args[]){
         int sum=0;
-        int a=153;
+        int a=7;
         int check=a;
         while(a>0){
             int b=(a%10);

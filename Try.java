@@ -7,6 +7,9 @@ public static void main(String args[]){
 	int check=2;
 	int b=1;
 	int arr[]={1,2,3,4,5,6};
+	    for(int i=0;i<arr.length;i++){
+            System.out.println(arr[i]);
+        }
 	for(b=0;b<=10;b++){
 		if(b!=7){
 			System.out.println("Talbe of " + b);
