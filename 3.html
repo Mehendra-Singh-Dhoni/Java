@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suyash Karande - Interactive Internship Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #000;
+        }
+        .report-container {
+            width: 100%;
+            max-width: 1400px; /* Increased Size */
+            margin: auto;
+            /* Aesthetic Animated Gradient Background */
+            background: linear-gradient(135deg, #0a192f 0%, #172a45 30%, #301b3f 70%, #4c1d44 100%);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            color: #ccd6f6; /* Light Slate */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        #spotlight {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            background: radial-gradient(circle at 50% 50%, rgba(48, 43, 99, 0.4), rgba(10, 25, 47, 0) 40%);
+            transition: transform 0.1s ease-out;
+            pointer-events: none;
+        }
+        #constellation-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+        .glass-panel {
+            background: rgba(23, 42, 69, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            animation: float 6s ease-in-out infinite; /* Faster float */
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+            100% { transform: translateY(0px); }
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn:not(.tab-active):hover {
+            color: #fff;
+            transform: translateY(-3px);
+            text-shadow: 0 0 15px #64ffda;
+        }
+        .tab-active {
+            color: #64ffda; /* Bright Cyan */
+            border-bottom-color: #64ffda;
+        }
+        .stat-number {
+            font-weight: 800;
+            font-size: 3.5rem;
+            line-height: 1;
+            color: #ffd700; /* Gold */
+            background: -webkit-linear-gradient(45deg, #ffd700, #fca311);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .phase-btn {
+            transition: all 0.3s ease;
+        }
+        .phase-btn:not(.phase-active):hover {
+            background-color: rgba(100, 255, 218, 0.1);
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.3);
+        }
+        .phase-active {
+            background-color: #64ffda !important;
+            color: #0a192f !important;
+            transform: scale(1.05);
+        }
+        .gallery-img {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.4s ease;
+        }
+        .gallery-img:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            opacity: 0;
+            animation: fadeInSlideUp 0.6s ease-out forwards; /* Faster reveal */
+        }
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-text:hover::before, .glitch-text:hover::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 25, 47, 0.8);
+            overflow: hidden;
+        }
+        .glitch-text:hover::before {
+            left: 2px;
+            text-shadow: -2px 0 #ff00c1;
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch-text:hover::after {
+            left: -2px;
+            text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
+            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim-1 { 0% { clip-path: inset(5% 0 90% 0); } 100% { clip-path: inset(80% 0 5% 0); } }
+        @keyframes glitch-anim-2 { 0% { clip-path: inset(70% 0 15% 0); } 100% { clip-path: inset(10% 0 85% 0); } }
+        
+        @keyframes flipIn {
+            from {
+                transform: perspective(1000px) rotateY(90deg);
+                opacity: 0;
+            }
+            to {
+                transform: perspective(1000px) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+        .certificate-animate {
+            animation: flipIn 1s ease-out forwards;
+        }
+        .gallery-filter-btn {
+            transition: all 0.3s ease;
+        }
+        .gallery-filter-active {
+            background-color: #64ffda !important;
+            color: #0a192f !important;
+            box-shadow: 0 0 20px #64ffda;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="report-container">
+        <div id="spotlight"></div>
+        <canvas id="constellation-canvas"></canvas>
+        <div class="content-wrapper p-6 sm:p-10">
+            <!-- Header -->
+            <header class="text-center py-6 border-b border-slate-700 animate-in" style="animation-delay: 0.1s;">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight glitch-text" data-text="A Digital Transformation in Rural Education">A Digital Transformation in Rural Education</h1>
+                <p class="text-lg text-slate-400 mt-3">Interactive Internship Report by <span class="font-semibold text-white">Suyash Karande</span></p>
+                <p class="text-md text-slate-500 mt-1">D Y Patil International University, Akurdi, Pune | Zilla Parishad Primary School, Shirgaon</p>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="my-8 border-b border-slate-700 animate-in" style="animation-delay: 0.2s;">
+                <div class="flex flex-wrap -mb-px justify-center gap-x-4 sm:gap-x-8" aria-label="Tabs">
+                    <button class="tab-btn tab-active py-4 px-1 text-lg font-medium" data-tab="mission">The Mission</button>
+                    <button class="tab-btn py-4 px-1 text-lg font-medium text-slate-400 hover:text-white" data-tab="approach">The Approach</button>
+                    <button class="tab-btn py-4 px-1 text-lg font-medium text-slate-400 hover:text-white" data-tab="results">Impact & Results</button>
+                    <button class="tab-btn py-4 px-1 text-lg font-medium text-slate-400 hover:text-white" data-tab="gallery">Gallery</button>
+                    <button class="tab-btn py-4 px-1 text-lg font-medium text-slate-400 hover:text-white" data-tab="certificate">Certificate</button>
+                    <button class="tab-btn py-4 px-1 text-lg font-medium text-slate-400 hover:text-white" data-tab="takeaways">Key Takeaways</button>
+                </div>
+            </nav>
+
+            <!-- Content Sections -->
+            <main id="tab-content">
+                <!-- The Mission Section -->
+                <section id="mission" class="tab-pane animate-in" style="animation-delay: 0.3s;">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="glass-panel" style="animation-delay: 0.4s;">
+                            <h3 class="text-2xl font-bold mb-4 text-cyan-400">The Problem</h3>
+                            <p class="text-slate-300 leading-relaxed">Rural primary schools often face a significant technology gap due to limited resource access and a lack of structured digital training. This hinders modern teaching methods and restricts students' preparedness for a competitive future.</p>
+                        </div>
+                        <div class="glass-panel" style="animation-delay: 0.5s;">
+                            <h3 class="text-2xl font-bold mb-4 text-cyan-400">Our Objectives</h3>
+                            <ul class="list-disc list-inside space-y-2 text-slate-300">
+                                <li>Introduce fundamental computer skills to primary students.</li>
+                                <li>Train teachers in using digital tools for lesson planning.</li>
+                                <li>Create engaging, interactive learning materials.</li>
+                                <li>Assess and understand challenges in rural education.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- The Approach Section -->
+                <section id="approach" class="tab-pane hidden">
+                     <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1 flex flex-col gap-3">
+                           <button class="phase-btn p-4 text-left w-full rounded-lg bg-slate-700 text-white shadow-md phase-active" data-phase="1"><strong>Phase 1:</strong> Needs Assessment</button>
+                           <button class="phase-btn p-4 text-left w-full rounded-lg bg-slate-700 text-white" data-phase="2"><strong>Phase 2:</strong> Content Planning</button>
+                           <button class="phase-btn p-4 text-left w-full rounded-lg bg-slate-700 text-white" data-phase="3"><strong>Phase 3:</strong> Practical Demos</button>
+                           <button class="phase-btn p-4 text-left w-full rounded-lg bg-slate-700 text-white" data-phase="4"><strong>Phase 4:</strong> Teacher Support</button>
+                           <button class="phase-btn p-4 text-left w-full rounded-lg bg-slate-700 text-white" data-phase="5"><strong>Phase 5:</strong> Evaluation</button>
+                        </div>
+                        <div id="phase-details" class="md:col-span-2 glass-panel min-h-[300px]"></div>
+                     </div>
+                </section>
+
+                <!-- Impact & Results Section -->
+                <section id="results" class="tab-pane hidden">
+                    <div class="grid lg:grid-cols-3 gap-6 text-center mb-8">
+                        <div class="glass-panel">
+                            <p class="stat-number" data-target="3" data-suffix="x">0x</p>
+                            <p class="mt-2 text-slate-300 font-semibold">Increase in Skill Mastery</p>
+                            <p class="text-xs text-slate-400">Student proficiency grew from 30% to 90%</p>
+                        </div>
+                        <div class="glass-panel">
+                            <p class="stat-number" data-target="88" data-prefix="+">%</p>
+                            <p class="mt-2 text-slate-300 font-semibold">Performance Lift</p>
+                            <p class="text-xs text-slate-400">Avg. test score improvement</p>
+                        </div>
+                        <div class="glass-panel">
+                            <h3 class="text-2xl font-bold mb-2 text-cyan-400">Key Outcomes</h3>
+                            <ul class="text-left text-sm space-y-1 text-slate-300">
+                                <li>✔ Students create/edit Word docs</li>
+                                <li>✔ Teachers use Word/Excel</li>
+                                <li>✔ Raised digital safety awareness</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="glass-panel">
+                        <h3 class="text-2xl font-semibold text-center mb-4 text-white">Student Performance Progression</h3>
+                        <div class="relative h-[40vh] max-h-[450px]"><canvas id="performanceChart"></canvas></div>
+                    </div>
+                </section>
+
+                <!-- Gallery Section -->
+                <section id="gallery" class="tab-pane hidden">
+                    <div class="flex justify-center gap-4 mb-8" id="gallery-filters">
+                        <button class="gallery-filter-btn gallery-filter-active bg-slate-700 text-white font-semibold py-2 px-6 rounded-full" data-filter="all">All Photos</button>
+                        <button class="gallery-filter-btn bg-slate-700 text-white font-semibold py-2 px-6 rounded-full" data-filter="teaching">Teaching Sessions</button>
+                        <button class="gallery-filter-btn bg-slate-700 text-white font-semibold py-2 px-6 rounded-full" data-filter="activities">Student Activities</button>
+                    </div>
+                    <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                </section>
+
+                <!-- Certificate Section -->
+                <section id="certificate" class="tab-pane hidden">
+                    <h2 class="text-3xl font-bold text-center mb-6 text-white">Internship Completion Certificate</h2>
+                    <div class="flex justify-center">
+                        <div class="glass-panel p-2 certificate-animate">
+                            <img src="https://media.licdn.com/dms/image/v2/D4D22AQEw6C3noQvRRg/feedshare-shrink_2048_1536/B4DZjN5MnEHYAw-/0/1755800986102?e=1758758400&v=beta&t=BOlMhTHKCA5i0KcGOUG7yPQ6uDSttVIUAW1di17txDI" alt="Internship Completion Certificate for Suyash Karande" class="rounded-lg max-w-full h-auto md:max-w-4xl">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Key Takeaways Section -->
+                <section id="takeaways" class="tab-pane hidden">
+                     <div class="grid md:grid-cols-2 gap-8">
+                        <div class="glass-panel">
+                            <h3 class="text-2xl font-bold mb-4 text-cyan-400">Key Challenges Faced</h3>
+                            <ul class="list-disc list-inside space-y-2 text-slate-300">
+                                <li><b>Limited Infrastructure:</b> Few computers restricted hands-on practice.</li>
+                                <li><b>Time Constraints:</b> Internship duration limited coverage of advanced topics.</li>
+                                <li><b>Low Initial Exposure:</b> Extra time needed for students new to computers.</li>
+                                <li><b>Internet Availability:</b> Unstable connectivity was a frequent hurdle.</li>
+                            </ul>
+                        </div>
+                        <div class="glass-panel">
+                            <h3 class="text-2xl font-bold mb-4 text-cyan-400">Conclusion & Learnings</h3>
+                            <p class="text-slate-300 leading-relaxed">This internship proved that targeted digital literacy programs can have a profound impact. It reinforced the importance of creating simple, accessible learning materials and adapting to resource constraints. The experience highlighted that even short-term exposure to technology can significantly empower both students and teachers, paving the way for a more equitable learning landscape.</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for Gallery -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center p-4">
+        <div class="relative bg-slate-800 p-4 rounded-lg max-w-4xl max-h-full">
+            <button id="modal-close" class="absolute -top-3 -right-3 bg-white text-black rounded-full w-8 h-8 text-2xl leading-none">&times;</button>
+            <img id="modal-img" src="" alt="Enlarged internship photo" class="w-full h-auto max-h-[85vh] object-contain rounded">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- MOUSE SPOTLIGHT EFFECT ---
+            const spotlight = document.getElementById('spotlight');
+            const container = document.querySelector('.report-container');
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                spotlight.style.transform = `translate(${x - container.offsetWidth/2}px, ${y - container.offsetHeight/2}px)`;
+            });
+
+            // --- CONSTELLATION/PARTICLE EFFECT ---
+            const canvas = document.getElementById('constellation-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            
+            function resizeCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.6; /* Faster particles */
+                    this.vy = (Math.random() - 0.5) * 0.6; /* Faster particles */
+                    this.radius = Math.random() * 1.5;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(204, 214, 246, 0.4)';
+                    ctx.fill();
+                }
+            }
+
+            function initParticles() {
+                particles = [];
+                let numberOfParticles = (canvas.width * canvas.height) / 8000; /* More particles */
+                for (let i = 0; i < numberOfParticles; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            initParticles();
+
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(100, 255, 218, ${1 - distance / 150})`;
+                            ctx.lineWidth = 0.2;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                connectParticles();
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+
+            // --- COUNT-UP ANIMATION ---
+            function animateCountUp(el) {
+                const target = +el.dataset.target;
+                const prefix = el.dataset.prefix || '';
+                const suffix = el.dataset.suffix || '';
+                if (parseInt(el.innerText.replace(prefix, '').replace(suffix, '')) === target) return; // Don't re-animate
+                let current = 0;
+                const duration = 1500; // ms
+                const stepTime = 20; // ms
+                const steps = duration / stepTime;
+                const increment = target / steps;
+
+                const updateCount = () => {
+                    current += increment;
+                    if (current < target) {
+                        el.innerText = prefix + Math.ceil(current) + suffix;
+                        setTimeout(updateCount, stepTime);
+                    } else {
+                        el.innerText = prefix + target + suffix;
+                    }
+                };
+                updateCount();
+            }
+            
+            // --- TAB FUNCTIONALITY ---
+            const tabs = document.querySelectorAll('.tab-btn');
+            const panes = document.querySelectorAll('.tab-pane');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('tab-active'));
+                    tab.classList.add('tab-active');
+                    panes.forEach(p => {
+                        p.classList.add('hidden');
+                        p.classList.remove('animate-in');
+                    });
+                    const activePane = document.getElementById(tab.dataset.tab);
+                    activePane.classList.remove('hidden');
+                    
+                    const animatedElements = activePane.querySelectorAll('.glass-panel, .grid > div, canvas, img, #gallery-filters');
+                    animatedElements.forEach((el, index) => {
+                        el.classList.add('animate-in');
+                        el.style.animationDelay = `${0.1 * (index + 1)}s`;
+                    });
+                    
+                    if (tab.dataset.tab === 'results') {
+                        document.querySelectorAll('.stat-number').forEach(animateCountUp);
+                    }
+                     if (tab.dataset.tab === 'certificate') {
+                        const certImg = activePane.querySelector('img');
+                        certImg.classList.remove('certificate-animate');
+                        void certImg.offsetWidth;
+                        certImg.classList.add('certificate-animate');
+                    }
+                });
+            });
+            
+            const initialAnimatedElements = document.getElementById('mission').querySelectorAll('.glass-panel');
+            initialAnimatedElements.forEach((el, index) => {
+                el.style.animationDelay = `${0.3 + (0.2 * index)}s`;
+            });
+
+            // --- APPROACH SECTION ---
+            const phaseButtons = document.querySelectorAll('.phase-btn');
+            const phaseDetailsContainer = document.getElementById('phase-details');
+            const phaseData = {
+                '1': { title: 'Needs Assessment', description: 'Conducted informal discussions and baseline tests to understand existing computer knowledge and identify learning gaps among students.' },
+                '2': { title: 'Content Planning', description: 'Designed detailed lesson plans covering computer basics, MS Word, and safe internet practices, preparing visual aids to support learning.' },
+                '3': { title: 'Practical Demonstrations', description: 'Delivered interactive classroom sessions and live demos, encouraging students to perform hands-on exercises on the computers.' },
+                '4': { title: 'Teacher Support', description: 'Assisted teachers in creating digital learning materials using Word and Excel, and demonstrated tools for test preparation and record-keeping.' },
+                '5': { title: 'Evaluation & Feedback', description: 'Conducted quizzes and practical tests to assess student progress and collected feedback to evaluate the program\'s effectiveness.' }
+            };
+            function updatePhaseDetails(phaseId) {
+                const data = phaseData[phaseId];
+                phaseDetailsContainer.innerHTML = `<h3 class="text-2xl font-bold mb-4 text-cyan-400">${data.title}</h3><p class="text-slate-300 leading-relaxed">${data.description}</p>`;
+            }
+            phaseButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    phaseButtons.forEach(btn => btn.classList.remove('phase-active'));
+                    button.classList.add('phase-active');
+                    updatePhaseDetails(button.dataset.phase);
+                });
+            });
+            updatePhaseDetails('1');
+
+            // --- CHART.JS ---
+            const chartCtx = document.getElementById('performanceChart')?.getContext('2d');
+            if (chartCtx) {
+                new Chart(chartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Quiz 1 (Pre-Test)', 'Quiz 2 (Mid-Test)', 'Quiz 3 (Final Test)'],
+                        datasets: [{
+                            label: 'Average Score (%)',
+                            data: [34, 64, 56.6],
+                            backgroundColor: 'rgba(100, 255, 218, 0.2)',
+                            borderColor: '#64ffda',
+                            borderWidth: 2,
+                            borderRadius: 5,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        animation: { duration: 2000, easing: 'easeOutBounce' }, /* Bouncing animation */
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#ccd6f6' } },
+                            x: { grid: { display: false }, ticks: { color: '#ccd6f6' } }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: c => `Avg Score: ${c.raw}%` } },
+                            title: { display: true, text: 'Scores are out of 10 for Quiz 1 & 2, and out of 20 for Quiz 3', color: '#ccd6f6' }
+                        }
+                    }
+                });
+            }
+
+            // --- GALLERY ---
+            const galleryGrid = document.getElementById('gallery-grid');
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            const modalClose = document.getElementById('modal-close');
+            const photos = {
+                teaching: [
+                    { src: 'https://placehold.co/600x400/60a5fa/ffffff?text=Intro+to+Hardware', caption: 'Introducing the basic components of a computer.' },
+                    { src: 'https://placehold.co/600x400/4ade80/ffffff?text=Teaching+Session', caption: 'An interactive teaching session in progress.' },
+                    { src: 'https://placehold.co/600x400/c084fc/ffffff?text=Asking+Questions', caption: 'Encouraging curiosity and questions from students.' },
+                    { src: 'https://placehold.co/600x400/22d3ee/000000?text=Teaching+Software', caption: 'Teaching students how to use software.' },
+                    { src: 'https://placehold.co/600x400/a78bfa/ffffff?text=Discussion+with+Teacher', caption: 'Collaborating with the faculty.' },
+                ],
+                activities: [
+                    { src: 'https://placehold.co/600x400/a3e635/334155?text=Fun+Activity', caption: 'Engaging students in a fun learning activity.' },
+                    { src: 'https://placehold.co/600x400/facc15/334155?text=Taking+Quiz', caption: 'Students participating in a digital literacy quiz.' },
+                    { src: 'https://placehold.co/600x400/f87171/ffffff?text=Taking+Practical', caption: 'Students getting hands-on experience during a practical session.' },
+                    { src: 'https://placehold.co/600x400/34d399/334155?text=Teachers+&+Students', caption: 'A group photo with the dedicated teachers and bright students.' },
+                    { src: 'https://placehold.co/600x400/fbbf24/000000?text=Problem+Solving', caption: 'Students problem-solving on a laptop.' },
+                    { src: 'https://placehold.co/600x400/f472b6/ffffff?text=End+Exam', caption: 'Students focused during the final practical exam.' },
+                ]
+            };
+            photos.all = [...photos.teaching, ...photos.activities].sort(() => 0.5 - Math.random());
+
+            const renderGallery = (filter) => {
+                galleryGrid.innerHTML = '';
+                photos[filter].forEach(photo => {
+                    const div = document.createElement('div');
+                    div.className = 'rounded-lg overflow-hidden cursor-pointer gallery-img';
+                    const img = document.createElement('img');
+                    img.src = photo.src;
+                    img.alt = photo.caption;
+                    img.className = 'w-full h-48 object-cover';
+                    div.appendChild(img);
+                    galleryGrid.appendChild(div);
+                    div.addEventListener('click', () => {
+                        modal.classList.remove('hidden');
+                        modalImg.src = img.src;
+                    });
+                });
+            };
+
+            const filterButtons = document.querySelectorAll('.gallery-filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('gallery-filter-active'));
+                    button.classList.add('gallery-filter-active');
+                    renderGallery(button.dataset.filter);
+                });
+            });
+
+            renderGallery('all'); // Initial render
+
+            const closeModal = () => modal.classList.add('hidden');
+            modalClose.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        });
+    </script>
+</body>
+</html>
