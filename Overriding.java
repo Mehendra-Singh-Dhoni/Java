@@ -9,7 +9,6 @@ class Person{
 }
 class Student extends Person{
     int id;
-    @Override
     void displayPerson(){
         super.displayPerson();
         System.out.println("id:" + id);
