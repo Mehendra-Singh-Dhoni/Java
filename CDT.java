@@ -4,4 +4,4 @@ public class CDT{
     LocalDateTime cur= LocalDateTime.now();
     System.out.println("Current time: " + cur);
 }
-}
+}   
